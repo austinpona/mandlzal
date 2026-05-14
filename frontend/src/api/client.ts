@@ -37,6 +37,13 @@ async function request<T>(path: string, opts: RequestInitX = {}): Promise<T> {
     body = new URLSearchParams(opts.form).toString();
   }
 
+  if (import.meta.env.VITE_DEMO === "true") {
+    const { mockRequest } = await import("./mocks");
+    const method = (opts.method?.toUpperCase() ?? "GET") as "GET" | "POST" | "PATCH" | "DELETE";
+    const payload = opts.json !== undefined ? opts.json : (opts.form ?? undefined);
+    return mockRequest<T>(method, path, payload);
+  }
+
   const res = await fetch(`${BASE}${path}`, { ...opts, headers, body });
   const text = await res.text();
   const parsed = text ? safeJSON(text) : null;

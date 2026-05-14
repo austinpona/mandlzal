@@ -8,6 +8,8 @@ interface AuthState {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, fullName?: string) => Promise<void>;
   logout: () => void;
+  canWrite: boolean;
+  canAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
