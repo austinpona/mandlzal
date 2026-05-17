@@ -20,6 +20,12 @@ class Settings(BaseSettings):
     GRACE_PERIOD_DAYS: int = 30
     LAPSE_THRESHOLD_MONTHS: int = 3
 
+    # Field-capture app
+    PHOTO_STORAGE_BACKEND: str = "filesystem"   # "filesystem" | "s3" (s3 placeholder for now)
+    PHOTO_STORAGE_PATH: str = "./media"         # root for the filesystem adapter
+    DEVICE_JWT_EXPIRES_DAYS: int = 180
+    ENROLLMENT_CODE_EXPIRES_HOURS: int = 24
+
     # App
     APP_NAME: str = "Mandlzi Subscription Management"
     DEBUG: bool = True

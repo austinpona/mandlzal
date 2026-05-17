@@ -21,3 +21,8 @@ frontend/.vite/
 .DS_Store
 Thumbs.db
 *.log
+
+.vercel
+
+# Field-capture photo storage (local dev)
+media/
