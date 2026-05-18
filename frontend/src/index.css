@@ -23,7 +23,7 @@
     @apply btn bg-red-600 text-white hover:bg-red-700;
   }
   .input {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none;
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none;
   }
   .label {
     @apply block text-sm font-medium text-slate-700 mb-1;
