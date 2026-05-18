@@ -9,6 +9,41 @@ import type {
 
 const BASE = "/api/api/field";
 
+const DEMO_PLANS: FieldCoverPlan[] = [
+  {
+    id: 101,
+    category: "me",
+    cover_type: "Me",
+    monthly_premium: "120.00",
+    max_dependents: 0,
+    description: "Covers the main member.",
+  },
+  {
+    id: 102,
+    category: "me_and_family",
+    cover_type: "Me and My Family",
+    monthly_premium: "360.00",
+    max_dependents: 4,
+    description: "Covers the main member and up to 4 dependents.",
+  },
+  {
+    id: 103,
+    category: "extended_family",
+    cover_type: "Extended Family",
+    monthly_premium: "520.00",
+    max_dependents: 8,
+    description: "Covers a larger family group.",
+  },
+  {
+    id: 104,
+    category: "livestock_benefits",
+    cover_type: "Cattle in December",
+    monthly_premium: "200.00",
+    max_dependents: 0,
+    description: "Livestock benefit plan with no beneficiaries.",
+  },
+];
+
 export class FieldApiError extends Error {
   status: number;
   body: any;
@@ -42,7 +77,26 @@ function safeJSON(text: string) {
   try { return JSON.parse(text); } catch { return text; }
 }
 
+function isDemo() {
+  return import.meta.env.VITE_DEMO === "true";
+}
+
+function demoDelay<T>(value: T): Promise<T> {
+  return new Promise((resolve) => setTimeout(() => resolve(value), 250));
+}
+
 export async function enrollFieldDevice(code: string, name: string): Promise<FieldDevice> {
+  if (isDemo()) {
+    if (!code.trim() || !name.trim()) {
+      throw new FieldApiError(400, { detail: "Enter a code and phone name" });
+    }
+    return demoDelay({
+      device_id: 9001,
+      name: name.trim(),
+      jwt: "demo-field-device-token",
+      enrolled_at: new Date().toISOString(),
+    });
+  }
   const res = await request<{ device_id: number; name: string; device_jwt: string }>("/enroll", {
     method: "POST",
     body: JSON.stringify({ code, name }),
@@ -51,17 +105,35 @@ export async function enrollFieldDevice(code: string, name: string): Promise<Fie
 }
 
 export async function fetchFieldPlans(): Promise<FieldCoverPlan[]> {
+  if (isDemo()) return demoDelay(DEMO_PLANS);
   const res = await request<{ plans: FieldCoverPlan[] }>("/cover-plans");
   return res.plans;
 }
 
 export async function uploadFieldPhoto(dataUrl: string): Promise<{ id_photo_id: string; path: string }> {
+  if (isDemo()) {
+    const path = `id_photos/demo-${Date.now()}.jpg`;
+    return demoDelay({ id_photo_id: path, path });
+  }
   const form = new FormData();
   form.append("file", dataUrlToFile(dataUrl, "id-photo.jpg"));
   return request("/photos", { method: "POST", body: form });
 }
 
 export async function postFieldSubmission(payload: FieldSubmissionPayload): Promise<FieldSubmissionResponse> {
+  if (isDemo()) {
+    const base = Math.floor(Date.now() / 1000);
+    return demoDelay({
+      field_submission_id: base,
+      results: payload.signups.map((signup, index) => ({
+        local_id: signup.local_id,
+        status: "ok",
+        customer_id: base + index + 1,
+        policy_id: base + index + 101,
+        payment_id: signup.first_payment ? base + index + 201 : null,
+      })),
+    });
+  }
   return request("/submissions", { method: "POST", body: JSON.stringify(payload) });
 }
 

@@ -1,5 +1,5 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Bell, FileText, Wallet, Smartphone } from "lucide-react";
+import { LayoutDashboard, Users, Bell, FileText, Wallet, Smartphone, TabletSmartphone } from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
 
 const ROLE_BADGE: Record<string, string> = {
@@ -40,6 +40,9 @@ export function Layout() {
           </NavLink>
           <NavLink to="/audit" className={linkCls}>
             <FileText size={18} /> Audit log
+          </NavLink>
+          <NavLink to="/field" className={linkCls}>
+            <TabletSmartphone size={18} /> Field app
           </NavLink>
           {canAdmin && (
             <NavLink to="/devices" className={linkCls}>
