@@ -30,6 +30,8 @@ INI = ROOT / "alembic.ini"
 EXPECTED_TABLES = {
     "users", "customers", "policies", "members",
     "payments", "audit_logs", "notifications",
+    "cover_plans", "beneficiaries", "devices",
+    "device_enrollment_codes", "field_submissions",
 }
 
 
@@ -116,3 +118,30 @@ def test_metadata_matches_migration(isolated_db):
         )
         diffs = compare_metadata(ctx, Base.metadata)
     assert not diffs, f"models drifted from migrations: {diffs}"
+
+
+def test_field_capture_models_import_and_register():
+    from app.models.device import Device, DeviceEnrollmentCode, DeviceStatus
+    from app.models.field_submission import FieldSubmission, FieldSubmissionStatus
+
+    assert DeviceStatus.active.value == "active"
+    assert DeviceStatus.revoked.value == "revoked"
+    assert "devices" in Device.metadata.tables
+    assert "device_enrollment_codes" in DeviceEnrollmentCode.metadata.tables
+    assert FieldSubmissionStatus.processed.value == "processed"
+    assert FieldSubmissionStatus.partial.value == "partial"
+    assert FieldSubmissionStatus.failed.value == "failed"
+    assert "field_submissions" in FieldSubmission.metadata.tables
+
+
+def test_existing_models_have_field_capture_columns():
+    from app.models.beneficiary import Beneficiary
+    from app.models.customer import Customer
+    from app.models.payment import Payment
+    from app.models.policy import Policy
+
+    bcols = {c.name for c in Beneficiary.__table__.columns}
+    assert {"title", "gender", "date_of_birth", "nationality", "email"} <= bcols
+    assert "id_photo_path" in {c.name for c in Customer.__table__.columns}
+    assert "field_submission_id" in {c.name for c in Policy.__table__.columns}
+    assert "field_submission_id" in {c.name for c in Payment.__table__.columns}

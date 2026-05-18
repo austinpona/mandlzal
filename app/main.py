@@ -11,7 +11,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
-from app.api import admin, auth, cover, customers, dashboard, members, payments, policies
+from app.api import admin, auth, cover, customers, dashboard, field, field_admin, members, payments, policies
 from app.config import settings
 from app.core.observability import RequestLogMiddleware, setup_metrics
 from app.core.rate_limit import limiter
@@ -103,6 +103,8 @@ def create_app() -> FastAPI:
     app.include_router(dashboard.router)
     app.include_router(admin.router)
     app.include_router(cover.router)
+    app.include_router(field.router)
+    app.include_router(field_admin.router)
     return app
 
 

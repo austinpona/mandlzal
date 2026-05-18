@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mandlzi funeral cover receipt</title>
+  <style>
+    @page { size: A5; margin: 12mm; }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #222; }
+    h1 { font-size: 18pt; margin: 0 0 4mm 0; }
+    .brand { font-size: 20pt; font-weight: 700; letter-spacing: 0; }
+    .ref { font-family: monospace; color: #555; }
+    table { width: 100%; border-collapse: collapse; margin-top: 4mm; }
+    th, td { text-align: left; border-bottom: 1px solid #ddd; padding: 2.5mm 0; vertical-align: top; }
+    th { width: 42%; color: #555; font-weight: 600; }
+    .note { margin-top: 6mm; padding-top: 4mm; border-top: 1px solid #ddd; color: #444; }
+  </style>
+</head>
+<body>
+  <div class="brand">{{ company_name }}</div>
+  <h1>{{ title }}</h1>
+  <p class="ref">Reference: {{ reference }}</p>
+  <table>
+    <tr><th>Date</th><td>{{ receipt_date }}</td></tr>
+    <tr><th>Holder</th><td>{{ holder_name }}</td></tr>
+    <tr><th>ID number</th><td>{{ holder_id_number }}</td></tr>
+    <tr><th>Plan</th><td>{{ plan_name }} (R{{ monthly_premium }} monthly)</td></tr>
+    <tr><th>Amount paid</th><td>R{{ amount_paid }}</td></tr>
+    <tr><th>Payment method</th><td>{{ payment_method }}</td></tr>
+    <tr><th>Payment month</th><td>{{ month_label }}</td></tr>
+    <tr><th>Dependents covered</th><td>{{ dependents_summary }}</td></tr>
+    <tr><th>Policy ID</th><td>{{ policy_id }}</td></tr>
+  </table>
+  <p class="note">
+    Coverage active from {{ coverage_start_iso }}. Cover lapses after
+    {{ lapse_threshold_months }} consecutive missed monthly payments.
+  </p>
+  <p class="ref">Device: {{ device_name }} | Captured: {{ captured_at_iso }}</p>
+</body>
+</html>

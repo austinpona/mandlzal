@@ -28,6 +28,8 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = decode_token(token)
+        if payload.get("type") == "device":
+            raise creds_exc
         user_id = int(payload.get("sub"))
     except (JWTError, TypeError, ValueError):
         raise creds_exc
@@ -63,6 +65,8 @@ def get_current_user_optional(
         return None
     try:
         payload = decode_token(token)
+        if payload.get("type") == "device":
+            return None
         user_id = int(payload.get("sub"))
     except (JWTError, TypeError, ValueError):
         return None

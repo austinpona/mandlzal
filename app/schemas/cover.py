@@ -74,8 +74,13 @@ class BeneficiaryIn(BaseModel):
     """Step 3 beneficiary - share_pct values across all beneficiaries
     on the policy must sum to exactly 100."""
     relationship_to_holder: str = Field(..., min_length=1, max_length=64)
+    title: str | None = Field(None, max_length=8)
     first_name: str = Field(..., min_length=1, max_length=120)
     surname: str = Field(..., min_length=1, max_length=120)
+    gender: str | None = Field(None, max_length=16)
+    date_of_birth: date | None = None
+    nationality: str | None = Field(None, max_length=80)
+    email: EmailStr | None = None
     cellphone: str | None = Field(None, max_length=32)
     country_of_birth: str | None = Field(None, max_length=80)
     share_pct: Decimal = Field(..., gt=0, le=100)
@@ -123,8 +128,13 @@ class CoverSignupRequest(BaseModel):
 class BeneficiaryOut(BaseModel):
     id: int
     relationship_to_holder: str
+    title: str | None
     first_name: str
     surname: str
+    gender: str | None
+    date_of_birth: date | None
+    nationality: str | None
+    email: str | None
     cellphone: str | None
     country_of_birth: str | None
     share_pct: Decimal

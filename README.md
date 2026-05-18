@@ -82,6 +82,10 @@ alembic downgrade -1
 
 `alembic/env.py` reads `DATABASE_URL` from the environment, so the same `.env` configures both the app and migrations.
 
+### Receipt PDF rendering on Windows
+
+Field-capture email receipts use WeasyPrint when its native GTK/Pango runtime is available. On Windows, install the runtime listed in the WeasyPrint Windows setup guide if `import weasyprint` fails with `libgobject-2.0-0` or similar. The app keeps local development usable with a small built-in PDF fallback, but production receipt rendering should run with WeasyPrint's native dependencies installed.
+
 A regression test (`tests/test_alembic.py::test_metadata_matches_migration`) runs `compare_metadata` and **fails CI if models drift from migrations** — so you can't accidentally ship a model change without a matching migration.
 
 ## Auth & RBAC
@@ -207,6 +211,18 @@ POST /admin/dispatch-notifications     # admin only, returns {scanned, sent, fai
 
 Adding a real SMS/email provider (Twilio, SES, Postmark) is a 30-line subclass — see `app/services/notification_providers.py`.
 
+Email receipts can be sent through SMTP independently of the webhook/log notification provider:
+
+```
+NOTIFICATION_EMAIL_PROVIDER=smtp       # log | smtp
+NOTIFICATION_EMAIL_FROM=noreply@example.com
+NOTIFICATION_SMTP_HOST=smtp.example.com
+NOTIFICATION_SMTP_PORT=587
+NOTIFICATION_SMTP_STARTTLS=1
+NOTIFICATION_SMTP_USERNAME=...
+NOTIFICATION_SMTP_PASSWORD=...
+```
+
 ## Key endpoints
 
 | Method | Path | Purpose |
@@ -225,6 +241,42 @@ Adding a real SMS/email provider (Twilio, SES, Postmark) is a 30-line subclass �
 | GET  | `/dashboard` | Summary metrics |
 | GET  | `/audit-logs` | Audit trail |
 | GET  | `/notifications` | Notifications |
+
+## Field capture app
+
+The field-capture backend and PWA live alongside the admin dashboard.
+
+Device/admin flow:
+
+```
+POST /admin/field/enrollment-codes      # admin creates 6-char code
+GET  /admin/field/devices               # list phones
+POST /admin/field/devices/{id}/revoke   # revoke lost phone
+POST /api/field/enroll                  # phone exchanges code for device JWT
+```
+
+Phone flow:
+
+```
+GET  /api/field/cover-plans
+POST /api/field/photos
+POST /api/field/submissions
+GET  /api/field/submissions/{client_uuid}
+```
+
+The PWA is served at `/field`. It stores the device token, draft signup, and sync queue locally in the browser so a phone can capture while offline and sync later. The admin dashboard has a **Field devices** page for enrollment codes and revocation.
+
+Local photo storage defaults to `media/id_photos`. For cloud/object storage, use S3-compatible settings:
+
+```
+PHOTO_STORAGE_BACKEND=s3
+PHOTO_STORAGE_S3_BUCKET=mandlzi-field-photos
+PHOTO_STORAGE_S3_PREFIX=id_photos
+PHOTO_STORAGE_S3_REGION=af-south-1
+PHOTO_STORAGE_S3_ENDPOINT_URL=          # optional for R2/MinIO/etc.
+```
+
+Operational baseline: issue enrollment codes only from an admin account, share codes out-of-band, revoke lost phones immediately, review the device list weekly, and keep object-storage lifecycle/retention aligned with your proof-of-signup policy.
 
 ## Payment status semantics
 
@@ -286,12 +338,16 @@ Make sure the FastAPI backend is running on port 8000 first (`uvicorn app.main:a
 
 ##~~# Pages~~✓ dnepluggable prvider iterface + `og`and `webook` implemntations;ubclss `NoifiationProvid` toaddTwlo/SES
 
+Field-worker phones open `http://localhost:5173/field` in development. In production, serve the same built frontend and install the PWA from `/field`.
+
 - **Dashboard** - summary cards, revenue progress bar, recent notifications
 - **Customers** - searchable list, click through to detail
 - **Customer detail** - profile, per-policy month-by-month status grid, group-scheme members, payments timeline, inline forms to add policy / add member / delete customer
 - **Record payment** - cascading selects (customer → policy → optional member), auto-fills the premium
 - **Notifications** - chronological feed of system-generated alerts
 - **Audit log** - last 100 mutating actions with details
+- **Field devices** - enrollment codes, device list, revocation
+- **Field PWA** (`/field`) - phone enrollment, offline capture, sync queue
 
 ### How it talks to the backend
 

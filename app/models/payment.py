@@ -26,6 +26,12 @@ class Payment(Base):
     customer_id = Column(Integer, ForeignKey("customers.id", ondelete="CASCADE"), nullable=False, index=True)
     policy_id = Column(Integer, ForeignKey("policies.id", ondelete="CASCADE"), nullable=False, index=True)
     member_id = Column(Integer, ForeignKey("members.id", ondelete="SET NULL"), nullable=True, index=True)
+    field_submission_id = Column(
+        Integer,
+        ForeignKey("field_submissions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     amount_paid = Column(Numeric(12, 2), nullable=False)
     payment_date = Column(Date, nullable=False, default=date.today, index=True)

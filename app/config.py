@@ -4,6 +4,7 @@ Uses pydantic-settings so values can come from a .env file or the
 process environment. Defaults are sensible for local development.
 """
 from functools import lru_cache
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +26,7 @@ class Settings(BaseSettings):
     PHOTO_STORAGE_PATH: str = "./media"         # root for the filesystem adapter
     DEVICE_JWT_EXPIRES_DAYS: int = 180
     ENROLLMENT_CODE_EXPIRES_HOURS: int = 24
+    DEV_FIELD_ADMIN_NO_LOGIN: bool = True
 
     # App
     APP_NAME: str = "Mandlzi Subscription Management"
@@ -68,10 +70,34 @@ class Settings(BaseSettings):
     # JSON to NOTIFICATION_WEBHOOK_URL.
     NOTIFICATION_PROVIDER: str = "log"
     NOTIFICATION_WEBHOOK_URL: str = ""
+    NOTIFICATION_EMAIL_PROVIDER: str = "log"  # "log" | "smtp"
+    NOTIFICATION_EMAIL_FROM: str = "noreply@mandlzi.local"
+    NOTIFICATION_SMTP_HOST: str = "localhost"
+    NOTIFICATION_SMTP_PORT: int = 25
+    NOTIFICATION_SMTP_USERNAME: str = ""
+    NOTIFICATION_SMTP_PASSWORD: str = ""
+    NOTIFICATION_SMTP_STARTTLS: bool = False
     NOTIFICATION_DISPATCH_INTERVAL_MINUTES: int = 5
     NOTIFICATION_MAX_ATTEMPTS: int = 5
 
+    # Optional S3-compatible storage for field-capture photos.
+    PHOTO_STORAGE_S3_BUCKET: str = ""
+    PHOTO_STORAGE_S3_PREFIX: str = "id_photos"
+    PHOTO_STORAGE_S3_REGION: str = ""
+    PHOTO_STORAGE_S3_ENDPOINT_URL: str = ""
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+
+    @field_validator("DEBUG", mode="before")
+    @classmethod
+    def _parse_debug_mode(cls, value):
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered == "release":
+                return False
+            if lowered == "debug":
+                return True
+        return value
 
 
 @lru_cache

@@ -13,12 +13,20 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
+from email.message import EmailMessage
+import logging
+import smtplib
 
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.models.customer import Customer
 from app.models.notification import Notification
+from app.models.payment import Payment
 from app.services.notification_providers import NotificationProvider, build_provider
+
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -30,6 +38,80 @@ class DispatchReport:
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+def send_email(
+    to: str,
+    subject: str,
+    body: str,
+    *,
+    attachments: list[dict] | None = None,
+) -> bool:
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["To"] = to
+    msg["From"] = settings.NOTIFICATION_EMAIL_FROM
+    msg.set_content(body)
+    for att in attachments or []:
+        mime = att.get("mime", "application/octet-stream")
+        maintype, _, subtype = mime.partition("/")
+        msg.add_attachment(
+            att["content"],
+            maintype=maintype or "application",
+            subtype=subtype or "octet-stream",
+            filename=att["filename"],
+        )
+
+    provider = (settings.NOTIFICATION_EMAIL_PROVIDER or "log").lower()
+    if provider == "log":
+        log.info("EMAIL to=%s subject=%s attachments=%s", to, subject, len(attachments or []))
+        return True
+    if provider != "smtp":
+        raise RuntimeError(f"Unknown NOTIFICATION_EMAIL_PROVIDER: {provider!r}")
+
+    with smtplib.SMTP(settings.NOTIFICATION_SMTP_HOST, settings.NOTIFICATION_SMTP_PORT) as smtp:
+        if settings.NOTIFICATION_SMTP_STARTTLS:
+            smtp.starttls()
+        if settings.NOTIFICATION_SMTP_USERNAME:
+            smtp.login(settings.NOTIFICATION_SMTP_USERNAME, settings.NOTIFICATION_SMTP_PASSWORD)
+        smtp.send_message(msg)
+    return True
+
+
+def _send_email_receipt(db: Session, notification: Notification) -> None:
+    from app.services.receipt_pdf import build_receipt_data, render_receipt_pdf
+
+    if notification.policy_id is None:
+        raise RuntimeError("EMAIL_RECEIPT notification has no policy_id")
+    payment = (
+        db.query(Payment)
+        .filter(Payment.policy_id == notification.policy_id)
+        .order_by(Payment.created_at.desc())
+        .first()
+    )
+    if payment is None:
+        raise RuntimeError("No payment found for EMAIL_RECEIPT notification")
+    customer = db.get(Customer, notification.customer_id)
+    if customer is None or not customer.email:
+        raise RuntimeError("Customer has no email address for receipt")
+
+    data = build_receipt_data(db, payment_id=payment.id)
+    pdf = render_receipt_pdf(data)
+    ok = send_email(
+        to=customer.email,
+        subject=f"Your Mandlzi funeral cover receipt ({data['reference']})",
+        body=(
+            "Thank you for joining Mandlzi. Your receipt is attached.\n"
+            f"Reference: {data['reference']}"
+        ),
+        attachments=[{
+            "filename": f"{data['reference']}.pdf",
+            "content": pdf,
+            "mime": "application/pdf",
+        }],
+    )
+    if not ok:
+        raise RuntimeError("Email provider returned false")
 
 
 def dispatch_pending_notifications(
@@ -63,7 +145,10 @@ def dispatch_pending_notifications(
             report.skipped_max_attempts += 1
             continue
         try:
-            provider.send(n)
+            if n.type == "EMAIL_RECEIPT":
+                _send_email_receipt(db, n)
+            else:
+                provider.send(n)
         except Exception as exc:  # noqa: BLE001 - provider may raise anything
             n.delivery_attempts = (n.delivery_attempts or 0) + 1
             n.last_error = str(exc)[:1000]
@@ -79,3 +164,6 @@ def dispatch_pending_notifications(
 
     db.commit()
     return report
+
+
+dispatch_pending = dispatch_pending_notifications

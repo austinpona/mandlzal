@@ -64,6 +64,49 @@ export interface Member {
   created_at: string;
 }
 
+export interface BeneficiaryInput {
+  relationship_to_holder: string;
+  title?: string | null;
+  first_name: string;
+  surname: string;
+  gender?: string | null;
+  date_of_birth?: string | null;
+  nationality?: string | null;
+  email?: string | null;
+  cellphone?: string | null;
+  country_of_birth?: string | null;
+  share_pct: string;
+}
+
+export interface CoverSignupInput {
+  cover_plan_id: number;
+  holder: {
+    title: string;
+    first_names: string;
+    surname: string;
+    id_number: string;
+    gender?: string | null;
+    date_of_birth?: string | null;
+    nationality?: string | null;
+    email?: string | null;
+    cellphone?: string | null;
+  };
+  dependents: Array<{
+    title: string;
+    first_names: string;
+    surname: string;
+    relationship_to_holder: string;
+    gender?: string | null;
+    date_of_birth?: string | null;
+    nationality?: string | null;
+    email?: string | null;
+    cellphone?: string | null;
+    country_of_birth?: string | null;
+    id_number?: string | null;
+  }>;
+  beneficiaries: BeneficiaryInput[];
+}
+
 export type MonthStatus = "PAID" | "NOT_PAID" | "OVERDUE" | "PARTIAL";
 
 export interface MonthPaymentStatus {
@@ -131,4 +174,17 @@ export interface AuditLogItem {
   entity_id: string | null;
   details: string | null;
   created_at: string;
+}
+
+export interface FieldDeviceAdmin {
+  id: number;
+  name: string;
+  status: "active" | "revoked";
+  enrolled_at: string;
+  last_seen_at: string | null;
+}
+
+export interface FieldEnrollmentCode {
+  code: string;
+  expires_at: string;
 }

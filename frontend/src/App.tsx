@@ -1,9 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./auth/AuthContext";
-import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Layout } from "./components/Layout";
-import { LoginPage } from "./pages/LoginPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { CustomersPage } from "./pages/CustomersPage";
 import { CustomerDetailPage } from "./pages/CustomerDetailPage";
@@ -11,6 +9,8 @@ import { NewCustomerPage } from "./pages/NewCustomerPage";
 import { NewPaymentPage } from "./pages/NewPaymentPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { AuditPage } from "./pages/AuditPage";
+import { FieldApp } from "./pages/field/FieldApp";
+import { DevicesPage } from "./pages/DevicesPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -28,8 +28,10 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/login" element={<LoginPage />} />
-            <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/field/*" element={<FieldApp />} />
+            <Route path="/devices" element={<DevicesPage />} />
+            <Route element={<Layout />}>
               <Route index element={<DashboardPage />} />
               <Route path="customers" element={<CustomersPage />} />
               <Route path="customers/new" element={<NewCustomerPage />} />

@@ -14,17 +14,32 @@ interface AuthState {
 
 const AuthContext = createContext<AuthState | null>(null);
 
+const publicAdmin: User = {
+  id: 0,
+  email: "open-access@mandlzi.local",
+  full_name: "Open Access",
+  is_admin: true,
+  role: "admin",
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(publicAdmin);
   const [loading, setLoading] = useState<boolean>(!!getToken());
 
-  // On mount, if we have a token, fetch the user.
+  // On mount, honor an existing token; otherwise run the UI in open-access mode.
   useEffect(() => {
     let cancelled = false;
-    if (!getToken()) { setLoading(false); return; }
+    if (!getToken()) {
+      setUser(publicAdmin);
+      setLoading(false);
+      return;
+    }
     api.get<User>("/auth/me")
       .then((u) => { if (!cancelled) setUser(u); })
-      .catch(() => { setToken(null); })
+      .catch(() => {
+        setToken(null);
+        if (!cancelled) setUser(publicAdmin);
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
@@ -45,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     setToken(null);
-    setUser(null);
+    setUser(publicAdmin);
   }
 
   const canAdmin = user?.role === "admin";

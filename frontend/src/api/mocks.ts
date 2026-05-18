@@ -11,6 +11,8 @@ import type {
   Payment,
   Policy,
   User,
+  FieldDeviceAdmin,
+  FieldEnrollmentCode,
 } from "../types";
 import { ApiError } from "./client";
 
@@ -36,6 +38,7 @@ const members: Member[] = [];
 const payments: Payment[] = [];
 const notifications: NotificationItem[] = [];
 const auditLogs: AuditLogItem[] = [];
+const fieldDevices: FieldDeviceAdmin[] = [];
 
 function buildCustomerStatus(customerId: number): CustomerPaymentStatusResponse {
   const pols = policies.filter((p) => p.customer_id === customerId);
@@ -221,6 +224,21 @@ export function mockRequest<T>(method: Method, path: string, body: any): Promise
   if (method === "GET" && bare === "/dashboard") return resolve(buildDashboard());
   if (method === "GET" && bare === "/notifications") return resolve(notifications);
   if (method === "GET" && bare === "/audit-logs") return resolve(auditLogs);
+  if (method === "GET" && bare === "/admin/field/devices") return resolve({ devices: fieldDevices });
+  if (method === "POST" && bare === "/admin/field/enrollment-codes") {
+    const code: FieldEnrollmentCode = {
+      code: Math.random().toString(36).slice(2, 8).toUpperCase(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    };
+    return resolve(code);
+  }
+  const revokeMatch = bare.match(/^\/admin\/field\/devices\/(\d+)\/revoke$/);
+  if (method === "POST" && revokeMatch) {
+    const device = fieldDevices.find((d) => d.id === Number(revokeMatch[1]));
+    if (!device) return notFound(path);
+    device.status = "revoked";
+    return resolve({ ok: true });
+  }
 
   return notFound(path);
 }

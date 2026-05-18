@@ -43,6 +43,12 @@ class Policy(Base):
     # Snapshot of the cover plan at the moment of signup. Nullable so
     # legacy/admin-created policies (no plan) continue to work.
     cover_plan_id = Column(Integer, ForeignKey("cover_plans.id", ondelete="SET NULL"), nullable=True, index=True)
+    field_submission_id = Column(
+        Integer,
+        ForeignKey("field_submissions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     customer = relationship("Customer", back_populates="policies")
     payments = relationship("Payment", back_populates="policy", cascade="all, delete-orphan")

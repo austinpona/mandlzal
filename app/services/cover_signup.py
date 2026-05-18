@@ -157,6 +157,11 @@ def perform_cover_signup(db: Session, payload: CoverSignupRequest,
             cellphone=ben.cellphone,
             country_of_birth=ben.country_of_birth,
             share_pct=ben.share_pct,
+            title=ben.title,
+            gender=ben.gender,
+            date_of_birth=ben.date_of_birth,
+            nationality=ben.nationality,
+            email=str(ben.email) if ben.email else None,
         ))
 
     # ---- 6. Audit + commit ----

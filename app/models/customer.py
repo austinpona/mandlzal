@@ -27,6 +27,7 @@ class Customer(Base):
     id_number = Column(String(64), unique=True, nullable=False, index=True)
     phone = Column(String(32), nullable=True)
     email = Column(String(255), nullable=True, index=True)
+    id_photo_path = Column(String(255), nullable=True)
     gender = Column(String(16), nullable=True)
     date_of_birth = Column(Date, nullable=True)
     nationality = Column(String(80), nullable=True)

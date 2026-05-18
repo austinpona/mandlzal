@@ -5,7 +5,7 @@ sum to exactly 100** for the policy to be valid; this is enforced
 in the signup service and re-checked on any later edit.
 """
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Numeric
+from sqlalchemy import Column, Date, Integer, String, DateTime, ForeignKey, Numeric
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -26,6 +26,11 @@ class Beneficiary(Base):
     # Percentage of the payout this beneficiary receives.
     # Stored as Numeric(5,2) so we can express e.g. 33.33 / 33.33 / 33.34.
     share_pct = Column(Numeric(5, 2), nullable=False)
+    title = Column(String(8), nullable=True)
+    gender = Column(String(16), nullable=True)
+    date_of_birth = Column(Date, nullable=True)
+    nationality = Column(String(80), nullable=True)
+    email = Column(String(255), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 

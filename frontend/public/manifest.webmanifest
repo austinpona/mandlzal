@@ -1,0 +1,17 @@
+{
+  "name": "Mandlzi Field Capture",
+  "short_name": "Mandlzi Field",
+  "start_url": "/field",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/field-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
