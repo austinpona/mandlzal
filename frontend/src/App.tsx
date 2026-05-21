@@ -11,6 +11,7 @@ import { NewCustomerPage } from "./pages/NewCustomerPage";
 import { NewPaymentPage } from "./pages/NewPaymentPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
 import { AuditPage } from "./pages/AuditPage";
+import { SchemePage } from "./pages/SchemePage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,12 @@ export default function App() {
               <Route path="payments/new" element={<NewPaymentPage />} />
               <Route path="notifications" element={<NotificationsPage />} />
               <Route path="audit" element={<AuditPage />} />
+              <Route path="schemes/:schemeType" element={<SchemePage />}>
+                <Route index element={<div className="text-slate-500">Overview coming next.</div>} />
+                <Route path="customers" element={<div className="text-slate-500">Customers tab coming next.</div>} />
+                <Route path="policies" element={<div className="text-slate-500">Policies tab coming next.</div>} />
+                <Route path="plans" element={<div className="text-slate-500">Plans tab coming next.</div>} />
+              </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
