@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, require_admin, require_writer
 from app.core.audit import log_action
 from app.database import get_db
+from app.models.cover_plan import CoverPlan, SchemeType
 from app.models.customer import Customer, CustomerStatus
 from app.models.payment import Payment
 from app.models.policy import Policy, PolicyStatus
@@ -49,8 +50,17 @@ def list_customers(
     _: User = Depends(get_current_user),
     skip: int = 0,
     limit: int = Query(100, le=500),
+    scheme_type: SchemeType | None = Query(None),
 ) -> list[Customer]:
-    return db.query(Customer).offset(skip).limit(limit).all()
+    q = db.query(Customer)
+    if scheme_type is not None:
+        q = (
+            q.join(Policy, Policy.customer_id == Customer.id)
+             .join(CoverPlan, Policy.cover_plan_id == CoverPlan.id)
+             .filter(CoverPlan.scheme_type == scheme_type)
+             .distinct()
+        )
+    return q.offset(skip).limit(limit).all()
 
 
 @router.get("/{customer_id}", response_model=CustomerOut)
