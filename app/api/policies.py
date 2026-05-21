@@ -1,12 +1,13 @@
 """Policy endpoints."""
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, require_writer
 from app.core.audit import log_action
 from app.database import get_db
+from app.models.cover_plan import CoverPlan, SchemeType
 from app.models.customer import Customer
 from app.models.policy import Policy
 from app.models.user import User
@@ -35,6 +36,24 @@ def create_policy(
     db.commit()
     db.refresh(policy)
     return policy
+
+
+@router.get("", response_model=list[PolicyOut])
+def list_policies(
+    customer_id: int | None = Query(None, description="Filter to one customer"),
+    scheme_type: SchemeType | None = Query(None, description="Filter to one scheme tab"),
+    skip: int = 0,
+    limit: int = Query(100, le=500),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+) -> list[Policy]:
+    q = db.query(Policy)
+    if customer_id is not None:
+        q = q.filter(Policy.customer_id == customer_id)
+    if scheme_type is not None:
+        q = q.join(CoverPlan, Policy.cover_plan_id == CoverPlan.id) \
+             .filter(CoverPlan.scheme_type == scheme_type)
+    return q.order_by(Policy.id).offset(skip).limit(limit).all()
 
 
 @router.get("/{policy_id}", response_model=PolicyOut)

@@ -37,6 +37,7 @@ class PolicyOut(BaseModel):
     status: PolicyStatus
     grace_period_days: int | None
     lapse_threshold_months: int | None
+    cover_plan_id: int | None
     created_at: datetime
     updated_at: datetime
 
