@@ -29,6 +29,23 @@ class CoverCategory(str, enum.Enum):
     livestock_benefits = "livestock_benefits"
 
 
+class SchemeType(str, enum.Enum):
+    """Top-level scheme tabs in the UI.
+
+    The first four are active and have seeded plans (or, in Stokvel's
+    case, will once the goal-savings engine ships). The remaining four
+    are rendered as "Coming Soon" placeholders in the sidebar.
+    """
+    funeral = "funeral"
+    stokvel = "stokvel"
+    purchase = "purchase"
+    goat_purchase = "goat_purchase"
+    wedding = "wedding"
+    party = "party"
+    breeding = "breeding"
+    farming = "farming"
+
+
 class CoverPlan(Base):
     __tablename__ = "cover_plans"
 
@@ -36,6 +53,10 @@ class CoverPlan(Base):
     # The two-level dropdown structure from the mockup:
     #   Category (1 of 4)  ->  Cover Type (a label specific to that category)
     category = Column(Enum(CoverCategory), nullable=False, index=True)
+    # Which top-level scheme tab this plan belongs to. Set explicitly
+    # per plan; backfilled for existing rows by the
+    # `<rev>_add_scheme_type` migration.
+    scheme_type = Column(Enum(SchemeType), nullable=False, index=True)
     cover_type = Column(String(80), nullable=False)
     # Flat monthly premium for this plan, regardless of how many of the
     # allowed dependents the customer actually adds. (See README.)

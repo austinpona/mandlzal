@@ -30,6 +30,7 @@ INI = ROOT / "alembic.ini"
 EXPECTED_TABLES = {
     "users", "customers", "policies", "members",
     "payments", "audit_logs", "notifications",
+    "cover_plans",
 }
 
 

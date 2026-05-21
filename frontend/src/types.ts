@@ -132,3 +132,47 @@ export interface AuditLogItem {
   details: string | null;
   created_at: string;
 }
+
+// Mirrors app/models/cover_plan.py SchemeType
+export type SchemeType =
+  | "funeral"
+  | "stokvel"
+  | "purchase"
+  | "goat_purchase"
+  | "wedding"
+  | "party"
+  | "breeding"
+  | "farming";
+
+export interface SchemeManifestEntry {
+  type: SchemeType;
+  label: string;
+  status: "active" | "coming_soon";
+}
+
+// Single source of truth for the sidebar and routing.
+export const SCHEME_MANIFEST: readonly SchemeManifestEntry[] = [
+  { type: "funeral",       label: "Funeral",       status: "active" },
+  { type: "stokvel",       label: "Stokvel",       status: "active" },
+  { type: "purchase",      label: "Purchase",      status: "active" },
+  { type: "goat_purchase", label: "Goat purchase", status: "active" },
+  { type: "wedding",       label: "Wedding",       status: "coming_soon" },
+  { type: "party",         label: "Party",         status: "coming_soon" },
+  { type: "breeding",      label: "Breeding",      status: "coming_soon" },
+  { type: "farming",       label: "Farming",       status: "coming_soon" },
+] as const;
+
+export interface SchemeOverviewResponse {
+  scheme_type: SchemeType;
+  label: string;
+  active_customers: number;
+  lapsed_customers: number;
+  active_policies: number;
+  lapsed_policies: number;
+  paid_this_month: number;
+  unpaid_this_month: number;
+  overdue_this_month: number;
+  revenue_this_month: string;
+  expected_revenue_this_month: string;
+  plan_count: number;
+}

@@ -19,7 +19,7 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from app.models.cover_plan import CoverCategory
+from app.models.cover_plan import CoverCategory, SchemeType
 
 
 # ---------- Catalog ----------
@@ -28,6 +28,7 @@ from app.models.cover_plan import CoverCategory
 class CoverPlanOut(BaseModel):
     id: int
     category: CoverCategory
+    scheme_type: SchemeType
     cover_type: str
     monthly_premium: Decimal
     max_dependents: int

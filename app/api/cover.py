@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user_optional
 from app.database import get_db
-from app.models.cover_plan import CoverCategory, CoverPlan
+from app.models.cover_plan import CoverCategory, CoverPlan, SchemeType
 from app.models.user import User
 from app.schemas.cover import (
     CoverPlanOut,
@@ -32,13 +32,16 @@ router = APIRouter(tags=["cover"])
 @router.get("/cover-plans", response_model=List[CoverPlanOut])
 def list_cover_plans(
     category: CoverCategory | None = Query(None, description="Filter to one category"),
+    scheme_type: SchemeType | None = Query(None, description="Filter to one scheme tab"),
     include_inactive: bool = Query(False),
     db: Session = Depends(get_db),
 ) -> List[CoverPlan]:
-    """Return the cover plan catalog, optionally filtered by category."""
+    """Return the cover plan catalog, optionally filtered by category or scheme type."""
     q = db.query(CoverPlan)
     if category is not None:
         q = q.filter(CoverPlan.category == category)
+    if scheme_type is not None:
+        q = q.filter(CoverPlan.scheme_type == scheme_type)
     if not include_inactive:
         q = q.filter(CoverPlan.is_active.is_(True))
     return q.order_by(CoverPlan.category, CoverPlan.monthly_premium).all()

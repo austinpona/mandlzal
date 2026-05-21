@@ -1,6 +1,10 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, Bell, FileText, LogOut, Wallet } from "lucide-react";
+import {
+  LayoutDashboard, Users, Bell, FileText, LogOut, Wallet, Smartphone,
+  TabletSmartphone, Layers,
+} from "lucide-react";
 import { useAuth } from "../auth/AuthContext";
+import { SCHEME_MANIFEST } from "../types";
 
 const ROLE_BADGE: Record<string, string> = {
   admin: "text-rose-300",
@@ -9,7 +13,7 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 export function Layout() {
-  const { user, logout, canWrite } = useAuth();
+  const { user, logout, canAdmin } = useAuth();
 
   const linkCls = ({ isActive }: { isActive: boolean }) =>
     `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
@@ -32,6 +36,36 @@ export function Layout() {
           <NavLink to="/customers" className={linkCls}>
             <Users size={18} /> Customers
           </NavLink>
+
+          <div className="pt-3 pb-1 px-3 text-[10px] uppercase tracking-wider text-slate-500">
+            Schemes
+          </div>
+          {SCHEME_MANIFEST.filter((s) => s.status === "active").map((s) => (
+            <NavLink key={s.type} to={`/schemes/${s.type}`} className={linkCls}>
+              <Layers size={18} /> {s.label}
+            </NavLink>
+          ))}
+          <div className="my-1 border-t border-slate-800" />
+          {SCHEME_MANIFEST.filter((s) => s.status === "coming_soon").map((s) => (
+            <NavLink
+              key={s.type}
+              to={`/schemes/${s.type}`}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
+                  isActive
+                    ? "bg-slate-800 text-slate-300"
+                    : "text-slate-500 hover:bg-slate-800/60"
+                }`
+              }
+            >
+              <Layers size={18} /> {s.label}
+              <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-600">
+                soon
+              </span>
+            </NavLink>
+          ))}
+
+          <div className="pt-3" />
           <NavLink to="/payments/new" className={linkCls}>
             <Wallet size={18} /> Record payment
           </NavLink>
@@ -41,6 +75,14 @@ export function Layout() {
           <NavLink to="/audit" className={linkCls}>
             <FileText size={18} /> Audit log
           </NavLink>
+          <NavLink to="/field" className={linkCls}>
+            <TabletSmartphone size={18} /> Field app
+          </NavLink>
+          {canAdmin && (
+            <NavLink to="/devices" className={linkCls}>
+              <Smartphone size={18} /> Field devices
+            </NavLink>
+          )}
         </nav>
         <div className="border-t border-slate-800 p-3">
           <div className="text-xs text-slate-400 mb-2 px-2">
